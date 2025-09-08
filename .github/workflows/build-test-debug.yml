@@ -19,9 +19,9 @@ jobs:
 
     steps:
     - name: Checkout Master with Submodule
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v4
       with:
-        token: ${{ secrets.MNET_PAT }}
+        token: ${{ secrets.BOT_TOKEN }}
         submodules: recursive
 
     - name: Setup Submodule
