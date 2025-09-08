@@ -43,8 +43,8 @@ jobs:
       - name: Checkout with Submodule
         uses: actions/checkout@v4.2.2
         with:
-          submodules: true
-          token: "${{ secrets.MNET_PAT }}"
+          token: ${{ secrets.MNET_PAT }}
+          submodules: recursive
 
       - name: Setup submodule
         run: |
