@@ -21,7 +21,6 @@ jobs:
       - name: Checkout Master
         uses: actions/checkout@v4.2.2
         with:
-          token: ${{ secrets.BOT_TOKEN }}
           submodules: recursive
 
       - name: Setup Submodule
