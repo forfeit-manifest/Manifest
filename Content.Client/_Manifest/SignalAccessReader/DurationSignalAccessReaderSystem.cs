@@ -60,7 +60,7 @@ public sealed class DurationSignalAccessReaderSystem : SharedDurationSignalAcces
 
     private void UpdateReaderAppearance(Entity<DurationSignalAccessReaderComponent> reader, SpriteComponent? spriteComponent = null, AppearanceComponent? appearanceComponent = null)
     {
-        if (spriteComponent == null && !TryComp(reader, out spriteComponent))
+        if (!Resolve(reader, ref spriteComponent, logMissing: false))
             return;
 
         AppearanceSystem.TryGetData<DurationSignalAccessReaderState?>(reader.Owner, DurationSignalAccessReaderVisuals.State, out var state, appearanceComponent);
@@ -71,19 +71,20 @@ public sealed class DurationSignalAccessReaderSystem : SharedDurationSignalAcces
         {
             case DurationSignalAccessReaderState.Fail:
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Fail, true);
-
+                Log.Debug("Playing fail");
                 if (!_animationSystem.HasRunningAnimation(reader.Owner, ReaderFailAnimationKey))
                     _animationSystem.Play(reader.Owner, ReaderFailAnimation, ReaderFailAnimationKey);
 
                 break;
             case DurationSignalAccessReaderState.Success:
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Success, true);
-
+                Log.Debug("Playing success");
                 if (!_animationSystem.HasRunningAnimation(reader.Owner, ReaderSuccessAnimationKey))
                     _animationSystem.Play(reader.Owner, ReaderSuccessAnimation, ReaderSuccessAnimationKey);
 
                 break;
             default:
+                Log.Debug("Off");
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Fail, false);
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Success, false);
                 break;

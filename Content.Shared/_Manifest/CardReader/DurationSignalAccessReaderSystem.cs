@@ -9,6 +9,7 @@ using Content.Shared.Random.Helpers;
 using Content.Shared.Tag;
 using Content.Shared.Timing;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Network;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Random;
@@ -47,7 +48,8 @@ public abstract class SharedDurationSignalAccessReaderSystem : EntitySystem
 
     public override void Update(float frameTime)
     {
-        base.Update(frameTime);
+        if (!_gameTiming.IsFirstTimePredicted)
+            return;
 
         foreach (var (uid, component) in _activeReaders)
         {
@@ -114,12 +116,17 @@ public abstract class SharedDurationSignalAccessReaderSystem : EntitySystem
         if (TryComp<UseDelayComponent>(reader, out var useDelay) && !_useDelaySystem.TryResetDelay((reader, useDelay), true, ReaderUseDelayId))
             return;
 
-        _doAfterSystem.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, reader.Comp.InteractionLength, new DurationSignalAccessReaderDoAfterEvent(), reader.Owner));
+        _doAfterSystem.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, reader.Comp.InteractionLength, new DurationSignalAccessReaderDoAfterEvent(), reader.Owner)
+        {
+            BreakOnWeightlessMove = false,
+            BreakOnMove = true,
+            NeedHand = true,
+        });
     }
 
     private void OnReaderFinishDoAfter(Entity<DurationSignalAccessReaderComponent> reader, ref DurationSignalAccessReaderDoAfterEvent args)
     {
-        if (args.Cancelled)
+        if (args.Cancelled || !_gameTiming.IsFirstTimePredicted)
             return;
 
         // This is a reallyneat trick, thanks to whoever made this hashcodecombine implementation.
