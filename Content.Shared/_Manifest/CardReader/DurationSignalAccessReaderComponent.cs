@@ -98,18 +98,3 @@ public sealed partial class DurationSignalAccessReaderDoAfterEvent : DoAfterEven
 {
     public override DoAfterEvent Clone() => this;
 }
-
-[Serializable, NetSerializable]
-public enum DurationSignalAccessReaderVisuals : byte
-{
-    State,
-};
-
-
-[Serializable, NetSerializable]
-public enum DurationSignalAccessReaderState : byte
-{
-    Off = 0,
-    Fail = 1,
-    Success = 2,
-}

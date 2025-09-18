@@ -20,7 +20,7 @@ public sealed class DurationSignalAccessReaderSystem : SharedDurationSignalAcces
 
     private static readonly Animation ReaderFailAnimation = new()
     {
-        Length = TimeSpan.FromSeconds(0.5),
+        Length = TimeSpan.FromSeconds(0.15),
         AnimationTracks =
         {
             new AnimationTrackSpriteFlick
@@ -36,7 +36,7 @@ public sealed class DurationSignalAccessReaderSystem : SharedDurationSignalAcces
 
     private static readonly Animation ReaderSuccessAnimation = new()
     {
-        Length = TimeSpan.FromSeconds(0.5),
+        Length = TimeSpan.FromSeconds(0.15),
         AnimationTracks =
         {
             new AnimationTrackSpriteFlick
@@ -50,8 +50,7 @@ public sealed class DurationSignalAccessReaderSystem : SharedDurationSignalAcces
         }
     };
 
-    private const string ReaderFailAnimationKey = "fail";
-    private const string ReaderSuccessAnimationKey = "success";
+    public const string ReaderAnimationKey = "fail";
 
     private void OnReaderAppearanceUpdated(Entity<DurationSignalAccessReaderComponent> reader, ref AppearanceChangeEvent args)
     {
@@ -64,24 +63,29 @@ public sealed class DurationSignalAccessReaderSystem : SharedDurationSignalAcces
             return;
 
         AppearanceSystem.TryGetData<DurationSignalAccessReaderState?>(reader.Owner, DurationSignalAccessReaderVisuals.State, out var state, appearanceComponent);
+        if (state != reader.Comp.CurrentState)
+        {
+            Log.Error("Mispredicted reader animation!");
+            return;
+        }
 
-        // If this transitions from fail to success (and vice versa) it will have both layers visible until it goes back to something else. But I cant be bothered to fix that.\
+        if (_animationSystem.HasRunningAnimation(reader.Owner, ReaderAnimationKey))
+            _animationSystem.Stop(reader.Owner, ReaderAnimationKey);
+
+        // If this transitions from fail to success (and vice versa) it will have both layers visible until it goes back to something else. But that doesn't really seem like a problem.
         var spriteEntity = (reader.Owner, spriteComponent);
         switch (state)
         {
             case DurationSignalAccessReaderState.Fail:
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Fail, true);
                 Log.Debug("Playing fail");
-                if (!_animationSystem.HasRunningAnimation(reader.Owner, ReaderFailAnimationKey))
-                    _animationSystem.Play(reader.Owner, ReaderFailAnimation, ReaderFailAnimationKey);
-
+                _animationSystem.Play(reader.Owner, ReaderFailAnimation, ReaderAnimationKey);
                 break;
             case DurationSignalAccessReaderState.Success:
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Success, true);
                 Log.Debug("Playing success");
-                if (!_animationSystem.HasRunningAnimation(reader.Owner, ReaderSuccessAnimationKey))
-                    _animationSystem.Play(reader.Owner, ReaderSuccessAnimation, ReaderSuccessAnimationKey);
 
+                _animationSystem.Play(reader.Owner, ReaderSuccessAnimation, ReaderAnimationKey);
                 break;
             default:
                 Log.Debug("Off");

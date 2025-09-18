@@ -9,7 +9,6 @@ using Content.Shared.Random.Helpers;
 using Content.Shared.Tag;
 using Content.Shared.Timing;
 using Robust.Shared.Audio.Systems;
-using Robust.Shared.Network;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Random;
@@ -19,15 +18,15 @@ namespace Content.Shared.MNET.CardReader;
 
 public abstract class SharedDurationSignalAccessReaderSystem : EntitySystem
 {
+    [Dependency] protected readonly SharedAppearanceSystem AppearanceSystem = default!;
+    [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private readonly TagSystem _tagSystem = default!;
     [Dependency] private readonly SharedPopupSystem _sharedPopupSystem = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
     [Dependency] private readonly SharedDeviceLinkSystem _deviceLinkSystem = default!;
     [Dependency] private readonly SharedAudioSystem _audioSystem = default!;
-    [Dependency] protected readonly SharedAppearanceSystem AppearanceSystem = default!;
     [Dependency] private readonly AccessReaderSystem _accessReaderSystem = default!;
     [Dependency] private readonly UseDelaySystem _useDelaySystem = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly TagSystem _tagSystem = default!;
 
     public const string ReaderUseDelayId = "signalAccessReader";
 
@@ -61,8 +60,12 @@ public abstract class SharedDurationSignalAccessReaderSystem : EntitySystem
     }
 
     // TODO: Unfuck appearance prediction
-    public void SetReaderState(Entity<DurationSignalAccessReaderComponent> reader, DurationSignalAccessReaderState state)
+    public bool SetReaderState(Entity<DurationSignalAccessReaderComponent> reader, DurationSignalAccessReaderState state)
     {
+        if (state == reader.Comp.CurrentState)
+            return false;
+
+        Log.Debug($"Setting state to {Enum.GetName(state)} from {Enum.GetName(reader.Comp.CurrentState)}");
         reader.Comp.CurrentState = state;
         AppearanceSystem.SetData(reader.Owner, DurationSignalAccessReaderVisuals.State, state);
 
@@ -74,6 +77,9 @@ public abstract class SharedDurationSignalAccessReaderSystem : EntitySystem
         }
         else
             _activeReaders.Remove(reader);
+
+        DirtyFields(reader, reader.Comp, null, nameof(DurationSignalAccessReaderComponent.CurrentState), nameof(DurationSignalAccessReaderComponent.NextStateChange));
+        return true;
     }
 
     private void OnReaderInit(Entity<DurationSignalAccessReaderComponent> reader, ref ComponentInit args)
@@ -116,7 +122,7 @@ public abstract class SharedDurationSignalAccessReaderSystem : EntitySystem
         if (TryComp<UseDelayComponent>(reader, out var useDelay) && !_useDelaySystem.TryResetDelay((reader, useDelay), true, ReaderUseDelayId))
             return;
 
-        _doAfterSystem.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, reader.Comp.InteractionLength, new DurationSignalAccessReaderDoAfterEvent(), reader.Owner)
+        args.Handled = _doAfterSystem.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, reader.Comp.InteractionLength, new DurationSignalAccessReaderDoAfterEvent(), reader.Owner)
         {
             BreakOnWeightlessMove = false,
             BreakOnMove = true,
@@ -126,7 +132,7 @@ public abstract class SharedDurationSignalAccessReaderSystem : EntitySystem
 
     private void OnReaderFinishDoAfter(Entity<DurationSignalAccessReaderComponent> reader, ref DurationSignalAccessReaderDoAfterEvent args)
     {
-        if (args.Cancelled || !_gameTiming.IsFirstTimePredicted)
+        if (args.Cancelled)
             return;
 
         // This is a reallyneat trick, thanks to whoever made this hashcodecombine implementation.
