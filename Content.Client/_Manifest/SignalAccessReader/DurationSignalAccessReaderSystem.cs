@@ -63,11 +63,6 @@ public sealed class DurationSignalAccessReaderSystem : SharedDurationSignalAcces
             return;
 
         AppearanceSystem.TryGetData<DurationSignalAccessReaderState?>(reader.Owner, DurationSignalAccessReaderVisuals.State, out var state, appearanceComponent);
-        if (state != reader.Comp.CurrentState)
-        {
-            Log.Error("Mispredicted reader animation!");
-            return;
-        }
 
         if (_animationSystem.HasRunningAnimation(reader.Owner, ReaderAnimationKey))
             _animationSystem.Stop(reader.Owner, ReaderAnimationKey);
@@ -78,17 +73,13 @@ public sealed class DurationSignalAccessReaderSystem : SharedDurationSignalAcces
         {
             case DurationSignalAccessReaderState.Fail:
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Fail, true);
-                Log.Debug("Playing fail");
                 _animationSystem.Play(reader.Owner, ReaderFailAnimation, ReaderAnimationKey);
                 break;
             case DurationSignalAccessReaderState.Success:
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Success, true);
-                Log.Debug("Playing success");
-
                 _animationSystem.Play(reader.Owner, ReaderSuccessAnimation, ReaderAnimationKey);
                 break;
             default:
-                Log.Debug("Off");
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Fail, false);
                 _spriteSystem.LayerSetVisible(spriteEntity, DurationSignalAccessReaderLayers.Success, false);
                 break;

@@ -59,13 +59,12 @@ public abstract class SharedDurationSignalAccessReaderSystem : EntitySystem
         }
     }
 
-    // TODO: Unfuck appearance prediction
+    // TODO: Fix appearance prediction
     public bool SetReaderState(Entity<DurationSignalAccessReaderComponent> reader, DurationSignalAccessReaderState state)
     {
         if (state == reader.Comp.CurrentState)
             return false;
 
-        Log.Debug($"Setting state to {Enum.GetName(state)} from {Enum.GetName(reader.Comp.CurrentState)}");
         reader.Comp.CurrentState = state;
         AppearanceSystem.SetData(reader.Owner, DurationSignalAccessReaderVisuals.State, state);
 
