@@ -1,12 +1,12 @@
 
-Manifest _(MNET, or MNET14)_ is a fork of [Space Station 14](https://github.com/space-wizards/space-station-14).
-As with all SS14 forks, we utilise the [Robust Toolbox engine](https://github.com/space-wizards/RobustToolbox) as a framework — however, it is not directly a part of our repository, [but a submodule of this repo](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
+Klovnstation 14 _(KS14)_ is a fork of [Space Station 14](https://github.com/space-wizards/space-station-14).
+We use the [Robust Toolbox engine](https://github.com/space-wizards/RobustToolbox).
 
 If you want to host or create content for base SS14, go to the [Space Station 14 repository](https://github.com/space-wizards/space-station-14), as it is holds all base code and resources for SS14 forks.
 
 ## Documentation/Wiki
 
-The [Wizard's Den docs site](https://docs.spacestation14.com/) has documentation on SS14's (and by extension, also MNET14's) content, engine, game design, and more, including code standards.
+The [Wizard's Den docs site](https://docs.spacestation14.com/) has documentation on SS14's (and by extension also KS14's) content, engine, game design, and more, including code standards.
 
 ## Legal Info
 
